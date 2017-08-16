@@ -1,6 +1,20 @@
 <template>
   <el-row>
-    <el-col :span="3" :offset="21">
+    <el-col :span="8" :offset="16">
+      <el-select v-model="select" placeholder="请选择"  >
+        <el-option
+          value="all"
+          label="全部">
+        </el-option>
+        <el-option
+          value="a"
+          label="已过期">
+        </el-option>
+        <el-option
+          value="b"
+          label="待完成">
+        </el-option>
+      </el-select>
       <el-button @click="newMemo" type="primary">新建备忘录</el-button>
     </el-col>
     <el-col>
@@ -115,6 +129,7 @@ export default {
         place: '西华大学',
         people: '和我媳妇',
       },],
+      select: '',
       newAMemo: false,
       isSaving: false,
       isDeleting: false,
