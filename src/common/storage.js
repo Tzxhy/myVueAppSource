@@ -16,7 +16,6 @@ class Storage {
 	getByPrefix(prefix) {
 		let storage = this.storage;
 		let self = this;
-		console.log(_.keys(storage));
 		return _.reduce(_.keys(storage), function(data, value){
 			value.indexOf(prefix) !== -1  ? data.push(JSON.parse(self.getByKey.call(self,value))) : '';
 			return data;

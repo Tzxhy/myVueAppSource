@@ -46,6 +46,15 @@
           label="伙伴">
         </el-table-column>
       </el-table>
+      <el-pagination
+      class="pager"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage4"
+      :page-size="10"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="400">
+    </el-pagination>
     </el-col>
     <el-col>
       <el-dialog title="新建备忘录" :visible.sync="newAMemo" >
@@ -75,13 +84,26 @@
         </div>
       </el-dialog>
     </el-col>
+    <el-col>
+      <el-dialog
+        title="确认删除"
+        :visible.sync="isDeleting"
+        size="tiny"
+        >
+        <span>确定删除这条备忘吗?</span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="isDeleting = false">取 消</el-button>
+          <el-button type="primary" @click="deleteAMemo">确 定</el-button>
+        </span>
+      </el-dialog>
+    </el-col>
   </el-row>
 </template>
 
 <script>
 import {Storage,getUniqueString} from '../../common/storage'
 import moment from 'moment'
-
+import _ from 'underscore'
 export default {
   data () {
     return {
@@ -95,13 +117,16 @@ export default {
       },],
       newAMemo: false,
       isSaving: false,
+      isDeleting: false,
       form: {
         taskId: '',
         shouldBeDoneDate:'',
         content: '',
         place: '',
         people: ''
-      }
+      },
+      deleteIndex: 0,
+      deleteRowData: {},
     }
   },
   storage: new Storage(),
@@ -110,8 +135,15 @@ export default {
 
     },
     handleDelete(index, rowData){
-      this.$options.storage.removeByKey(rowData.taskId);
-      this.table.splice(index, 1);
+      this.isDeleting = true;
+      this.deleteIndex = index;
+      this.deleteRowData = rowData;
+
+    },
+    deleteAMemo() {
+      this.$options.storage.removeByKey(this.deleteRowData.taskId);
+      this.table.splice(this.deleteIndex, 1);
+      this.isDeleting = false;
     },
     newMemo(){
       this.newAMemo = true;
@@ -121,22 +153,21 @@ export default {
       this.form.createDate = moment().format('YYYY-MM-DD, hh:mm:ss');
       this.form.shouldBeDoneDate = moment(this.form.shouldBeDoneDate).format('YYYY-MM-DD, hh:mm:ss');
       this.form.taskId = 'task_' + getUniqueString();
-      console.log(this.form);
-      /*
-        操作localStorage  
-       */
-      // let storage = new Storage();
       this.$options.storage.setByKey(this.form.taskId, this.form);
-      this.table.push(this.form)
+      this.table.push(_.clone(this.form))
       this.newAMemo = false;
       this.isSaving = false;
-      console.log(this.form);
       this.$refs['newForm'].resetFields();
+    },
+    handleSizeChange(size){
+
+    },
+    handleCurrentChange(currentPage){
+
     }
+
   },
   mounted(){
-    // let storage = new Storage();
-    // console.log(storage);
     this.table = this.$options.storage.getByPrefix('task_');  
 
   }
@@ -148,13 +179,16 @@ export default {
 .el-row {
   margin-left: 20px;
   margin-right: 20px;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 .el-col {
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 .table thead th {
   text-align: center;
+}
+.pager {
+  text-align: left;
 }
 </style>
