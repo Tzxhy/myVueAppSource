@@ -1,7 +1,7 @@
 <template>
   <el-row>
     <el-col :span="8" :offset="16">
-      <el-select v-model="select" placeholder="请选择"  >
+      <el-select v-model="select" placeholder="请选择" @change="selectChange" >
         <el-option
           value="all"
           label="全部">
@@ -64,10 +64,10 @@
       class="pager"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-      :current-page="currentPage4"
+      :current-page.sync="currentPage"
       :page-size="10"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="400">
+      layout="total, prev, pager, next, jumper"
+      :total="totalMemo">
     </el-pagination>
     </el-col>
     <el-col>
@@ -95,6 +95,34 @@
         <div slot="footer" class="dialog-footer">
           <el-button @click="newAMemo = false">取 消</el-button>
           <el-button type="primary" @click="saveNewAMemo" :loading="isSaving">确 定</el-button>
+        </div>
+      </el-dialog>
+    </el-col>
+    <el-col>
+      <el-dialog title="编辑备忘录" :visible.sync="editAMemo" >
+        <el-form :model="editForm" label-width="100px" label-position="left" >
+          <el-form-item label="应完成日期" align="left" prop="shouldBeDoneDate">
+            <el-date-picker
+              v-model="editForm.shouldBeDoneDate"
+              type="datetime"
+              format="yyyy-MM-dd HH:mm:ss"
+              align="left"
+              placeholder="选择完成日期时间">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="内容" prop="content">
+            <el-input v-model="editForm.content" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="地点" prop="place">
+            <el-input v-model="editForm.place" auto-complete="off"></el-input>
+          </el-form-item> 
+          <el-form-item label="伙伴" prop="people">
+            <el-input v-model="editForm.people" auto-complete="off"></el-input>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="editAMemo = false">取 消</el-button>
+          <el-button type="primary" @click="saveEditedAMemo" :loading="isSaving">确 定</el-button>
         </div>
       </el-dialog>
     </el-col>
@@ -129,6 +157,10 @@ export default {
         place: '西华大学',
         people: '和我媳妇',
       },],
+      sourceTable: [],
+      editAMemo: false,
+      currentPage: 1,
+      pageSize: 10,
       select: '',
       newAMemo: false,
       isSaving: false,
@@ -142,12 +174,18 @@ export default {
       },
       deleteIndex: 0,
       deleteRowData: {},
+      editIndex: 0,
+      editRowData: {},
+      editForm: {}
     }
   },
   storage: new Storage(),
   methods: {
     handleEdit(index, rowData){
-
+      this.editAMemo = true;
+      this.editIndex = index;
+      this.editForm = rowData;
+      console.log(this.editForm);
     },
     handleDelete(index, rowData){
       this.isDeleting = true;
@@ -157,8 +195,18 @@ export default {
     },
     deleteAMemo() {
       this.$options.storage.removeByKey(this.deleteRowData.taskId);
-      this.table.splice(this.deleteIndex, 1);
+      this.sourceTable.splice(this.deleteIndex, 1);
+      this.getPageData();
       this.isDeleting = false;
+    },
+    saveEditedAMemo(){
+      console.log(this.editForm);
+      this.isSaving = true;
+      this.editForm.shouldBeDoneDate = moment(this.editForm.shouldBeDoneDate).format('YYYY-MM-DD, hh:mm:ss');
+      this.$options.storage.setByKey(this.editForm.taskId, this.editForm);
+      this.sourceTable.splice((this.currentPage-1)*10+this.editIndex, 1, _.clone(this.editForm));
+      this.editAMemo = false;
+      this.isSaving = false;
     },
     newMemo(){
       this.newAMemo = true;
@@ -169,7 +217,9 @@ export default {
       this.form.shouldBeDoneDate = moment(this.form.shouldBeDoneDate).format('YYYY-MM-DD, hh:mm:ss');
       this.form.taskId = 'task_' + getUniqueString();
       this.$options.storage.setByKey(this.form.taskId, this.form);
-      this.table.push(_.clone(this.form))
+      // this.table.push(_.clone(this.form))
+      this.sourceTable.push(_.clone(this.form))
+      this.getPageData();
       this.newAMemo = false;
       this.isSaving = false;
       this.$refs['newForm'].resetFields();
@@ -178,13 +228,52 @@ export default {
 
     },
     handleCurrentChange(currentPage){
-
+      this.currentPage = currentPage;
+      this.table = this.sourceTable.slice((this.currentPage-1)*this.pageSize, this.currentPage*this.pageSize-1);
+    },
+    getPageData(){
+      this.table = this.sourceTable.slice((this.currentPage-1)*10, this.currentPage*10-1);
+    },
+    selectChange(val){
+      if (val === 'all') {
+        this.getPageDataByType(function (arg) {
+          return true;
+        })
+      }else if(val === 'a') {
+        this.getPageDataByType(function (arg) {
+          return arg.isBefore(moment());
+        })
+      }else {
+        this.getPageDataByType(function (arg) {
+          return arg.isAfter(moment());
+        })
+      }
+    },
+    getPageDataByType(fun) {
+      this.table = _.reduce(this.sourceTable, function(memo, value){
+        if (fun(moment(value.shouldBeDoneDate, "YYYY-MM-DD, hh:mm:ss"))){
+          _.chain(memo).push(value).value();
+        }
+        return memo;
+      }, []);
     }
 
+
+  },
+  computed: {
+    totalMemo:{
+      get(){
+        return this.table.length;
+      },
+      set(){
+
+      }
+
+    }
   },
   mounted(){
-    this.table = this.$options.storage.getByPrefix('task_');  
-
+    this.sourceTable = this.$options.storage.getByPrefix('task_');  
+    this.getPageData();
   }
 }
 </script>

@@ -22,7 +22,7 @@
 				</el-menu-item>
 			</el-menu>
 		</el-col>
-		<el-col :span="20">
+		<el-col :span="20" style="overflow-y: auto;height: 100%;">
 			<transition name="fade" mode="out-in">
 				<router-view></router-view>
 			</transition>
