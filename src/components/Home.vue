@@ -8,14 +8,20 @@
 						<span slot="title">常用工具</span>
 					</template>
 					<el-menu-item index="memorandum">备忘录</el-menu-item>
-					<el-menu-item index="1-2">选项2</el-menu-item>
-					<el-menu-item index="1-3">选项3</el-menu-item>
+					<el-menu-item index="calculator">高级计算器</el-menu-item>
+					<el-menu-item index="map">地图</el-menu-item>
 					<el-menu-item index="1-4-1">选项1</el-menu-item>
 				</el-submenu>
-				<el-menu-item index="2">
-					<i class="el-icon-menu"></i>
-					<span slot="title">导航二</span>
-				</el-menu-item>
+				<el-submenu index="2">
+					<template slot="title">
+						<i class="el-icon-menu"></i>
+						<span slot="title">开发工具</span>
+					</template>
+					<el-menu-item index="json">JSON校验</el-menu-item>
+					<el-menu-item index="color-picker">颜色选取</el-menu-item>
+					<el-menu-item index="map">地图</el-menu-item>
+					<el-menu-item index="ul-test">slot测试</el-menu-item>
+				</el-submenu>
 				<el-menu-item index="3">
 					<i class="el-icon-setting"></i>
 					<span slot="title">导航三</span>
