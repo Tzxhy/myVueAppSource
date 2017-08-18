@@ -45,7 +45,7 @@
 	
 
 	export default {
-
+		name: 'fff',
 		data(){
 			return {
 				isCollapse: false,
