@@ -1,14 +1,17 @@
-<template>
+<!-- <template>
 	<tbody>
 		<template v-for="item of page">
 			<slot :item="item">
 				<tr>
-					<td v-for="it of property">{{it?item[it.prop]:''}}</td>
+					<slot v-for="it of property" :it="it">
+						<td >{{it?item[it.prop]:''}}</td>
+					</slot>
+					
 				</tr>
 			</slot>
 		</template>
 	</tbody>
-</template>
+</template> -->
 
 <script>
 	export default {
@@ -24,12 +27,15 @@
 		props: {
 			data: {
 				type: Array,
+			},
+			scope: {
+				type: Function,
 			}
 		},
 		data(){
 			return {
 				page: this.data,
-				property: []
+				property: null
 			}
 		},
 		created(){
@@ -37,21 +43,39 @@
 		},
 		mounted(){
 			this.$parent._bus.$on('give',this.handle);
+			console.log('scope,',this.scope);
 		},
 		name: 'TTbody',
-		// render(h){
-		// 	console.log('render', this.property);
-		// 	let st = this.page.map((value, index)=>{
-		// 					return (
-		// 						<tr> this.property.length?this.property.map((val,index)=>{<td>{val?value[val]:''}</td>}):'' </tr>
-		// 					)})
-		// 	return (
-		// 		<tbody>
-		// 			{st}
-		// 		</tbody>
+		render(r){
+			let self = this;
+			if (!self.scope || !self.property) {
+				return r('tbody', 
+					[].map.call(self.page, function (item, index) {
+						return r('tr','');
+					})
+					)
+			} else {
+				return r('tbody', 
+					[].map.call(self.page, function (item, index) {
+						return r('tr',
+							[r('td' ,self.scope({index,rowData:item })),...([].map.call(self.property,
+								function (it, index) {
+									if(!it.prop)
+										return;
+									else
+										return r('td', item[it.prop]);	
+								}))]
+						)
+					})
 
-		// 		)
-		// }
+
+
+
+					)
+			}
+
+			
+		}
 	}
 
 </script>

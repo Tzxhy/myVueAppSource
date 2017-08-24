@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<slot></slot>
+		<slot text="fff"></slot>
 	</div>
 
 </template>
@@ -22,6 +22,13 @@
 		created(){
 			let parent = this.parent;
 			parent.$emit('init', this.$props);
+		},
+		mounted(){
+			// console.log('in ta ble item     , ',this); 
+			if (this.$scopedSlots.default){
+				let parent = this.parent;
+				parent.$emit('initScope', this.$scopedSlots.default);
+			}
 		},
 		computed: {
 			parent(){

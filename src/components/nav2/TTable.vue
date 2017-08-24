@@ -8,9 +8,9 @@
 		    :text="item.text">
 		  </slot> -->
 		  	<t-thead :data="tableHeader">
-		  	
+		  		
 			  </t-thead>
-			  <t-tbody :data="tableRow">
+			  <t-tbody :data="tableRow" :scope="scopedSlot">
 			  	
 			  </t-tbody>
 		  
@@ -46,6 +46,7 @@ import TThead from './TThead'
 			return {
 				dataTable: this.items,
 				tableHeader: [],
+				scopedSlot: null,
 
 			}
 		},
@@ -59,19 +60,24 @@ import TThead from './TThead'
 		},
 		created(){
 			this.$on('init',this.handle)
-			
+			this.$on('initScope',this.handleScope)
 			// console.log('init is $On');
 		},
 		methods:{
 			handle(d){
 				this.tableHeader.push(d);
 				// console.log('this.tableHeade',this.tableHeader);
+			},
+			handleScope(d){
+				if (d) {
+					this.scopedSlot = d;
+				}
 			}
 		},
 		mounted(){
 			// console.log('this:',this.tableRow);
 			// console.log("this._bus", this._bus);
-			console.log('this', this);
+			// console.log('this', this);
 		}
 	}
 

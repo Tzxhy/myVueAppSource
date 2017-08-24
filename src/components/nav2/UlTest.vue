@@ -5,8 +5,8 @@
   	</template> -->
   	<t-table-item
   	label="操作">
-  		<template scope="ge">
-  			<el-button type="text">删除</el-button>
+  		<template scope="prop">
+  			<el-button type="primary" @click="showData(prop.index, prop.rowData)">删除{{prop.text}}</el-button>
   		</template>
   	</t-table-item>
   	<t-table-item
@@ -50,6 +50,9 @@
 		methods: {
 			click(){
 				alert('click')
+			},
+			showData(index, data){
+				console.log(index, data);
 			}
 		},
 		components: {
